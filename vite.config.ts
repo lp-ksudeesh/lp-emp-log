@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
-        allowedHosts: "lp-emp-performance-log-gudch4hzcpa6dbdu.eastus2-01.azurewebsites.net"
+        allowedHosts: ["lp-emp-performance-log-gudch4hzcpa6dbdu.eastus2-01.azurewebsites.net"]
       },
       plugins: [react()],
       define: {
