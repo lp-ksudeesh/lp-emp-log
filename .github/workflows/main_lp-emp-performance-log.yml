@@ -21,7 +21,7 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '20.x'
+          node-version: '22.x'
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -46,4 +46,4 @@ jobs:
           app-name: 'lp-emp-performance-log'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_4420DDBD6413465C9ABE346D66537B17 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_42072EA71E1140378BB5E5232143EF88 }}
