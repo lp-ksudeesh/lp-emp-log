@@ -70,10 +70,31 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData as EmployeeDailyStatus);
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const response = await fetch('/submit-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    const result = await response.json();
+    console.log("Server response:", result);
+
+    if (response.ok) {
+      alert("Saved successfully");
+    } else {
+      alert("Insert failed");
+    }
+
+  } catch (error) {
+    console.error("Submit error:", error);
+    alert("Something went wrong");
+  }
+};
+ 
 
   const SectionTitle = ({ icon: Icon, title }: { icon: any, title: string }) => (
     <div className="flex items-center gap-2 mb-6 border-b-2 border-black pb-2">
