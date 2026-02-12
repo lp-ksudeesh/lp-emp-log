@@ -46,4 +46,4 @@ jobs:
           app-name: 'lp-emp-performance-log'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_42072EA71E1140378BB5E5232143EF88 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2049B8F65BCE47D5AA9A9EF65FCE679B }}
