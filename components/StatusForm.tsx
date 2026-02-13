@@ -80,20 +80,18 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
       body: JSON.stringify(formData)
     });
 
-    const result = await response.json();
-    console.log("Server response:", result);
-
-    if (response.ok) {
-      alert("Saved successfully");
-    } else {
-      alert("Insert failed");
+    if (!response.ok) {
+      console.error("Insert failed");
+      return;
     }
+
+    onSubmit(formData as EmployeeDailyStatus);
 
   } catch (error) {
     console.error("Submit error:", error);
-    alert("Something went wrong");
   }
 };
+ 
  
 
   const SectionTitle = ({ icon: Icon, title }: { icon: any, title: string }) => (
