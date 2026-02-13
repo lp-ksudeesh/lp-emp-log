@@ -1,4 +1,5 @@
 
+import { useNavigate } from "react-router-dom";
 import React, { useState } from 'react';
 import { 
   User, Briefcase, Calendar, Clock, ClipboardList, AlertCircle, 
@@ -11,6 +12,7 @@ interface Props {
 }
 
 const StatusForm: React.FC<Props> = ({ onSubmit }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<any>({
     Designation_Role: 'Associate Data Analyst',
     Department: 'Data Engineering',
@@ -25,6 +27,8 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
     Has_Blockers: 'No'
   });
 
+
+  
   const [overtimeSuggested, setOvertimeSuggested] = useState(false);
   const [showShortHoursReason, setShowShortHoursReason] = useState(false);
   const [wordCount, setWordCount] = useState(0);
@@ -84,10 +88,11 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
     console.log("Server response:", result);
 
     if (response.ok) {
-      alert("Saved successfully");
-    } else {
-      alert("Insert failed");
-    }
+  navigate("/success");   
+} else {
+  console.error("Insert failed");
+}
+ 
 
   } catch (error) {
     console.error("Submit error:", error);
