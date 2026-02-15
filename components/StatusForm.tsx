@@ -14,7 +14,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
     Employee_Id: '',
     Full_Name: '',
     Designation_Role: '',
-    Department: 'Data Engineering',
+    Department: '',
     Employment_Type: 'Full-time',
     Shift_Type: 'General',
     Work_Status: 'On Track',
