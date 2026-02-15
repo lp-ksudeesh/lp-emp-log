@@ -225,7 +225,7 @@ if (name === "Project_Names") {
   type="text"
   value={formData.Designation_Role}
   readOnly
-  className="w-full px-4 py-3.5 bg-gray-100 border-2 border-black rounded-2xl text-black font-bold"
+  className="w-full px-4 py-3.5 bg-gray-100 border-2 border-black rounded-2xl text-black font-bold cursor-not-allowed"
 />
 
             </div>
@@ -246,7 +246,7 @@ if (name === "Project_Names") {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Department</Label>
-              <select 
+              <input 
   name="Department"
   type="text"
   value={formData.Department}
