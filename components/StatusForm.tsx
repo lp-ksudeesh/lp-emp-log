@@ -209,11 +209,9 @@ if (name === "Project_Names") {
               <input
   name="Full_Name"
   type="text"
-  placeholder="Your official name"
   value={formData.Full_Name}
-  required
-  onChange={handleChange}
-  className="w-full pl-11 pr-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold placeholder:text-slate-300"
+  readOnly
+  className="w-full pl-11 pr-4 py-3.5 bg-gray-100 border-2 border-black rounded-2xl text-black font-bold"
 />
  
             </div>
@@ -222,13 +220,12 @@ if (name === "Project_Names") {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Role & Designation</Label>
-              <select 
-                name="Designation_Role" 
-                required 
-                className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold cursor-pointer" 
-                onChange={handleChange}
-                value={formData.Designation_Role}
-              >
+             <select 
+  name="Designation_Role"
+  value={formData.Designation_Role}
+  disabled
+  className="w-full px-4 py-3.5 bg-gray-100 border-2 border-black rounded-2xl text-black font-bold"
+>
                 {[
                   'Associate Data Analyst', 'Associate Data Engineer', 'Data Engineer',
                   'Data Analyst', 'Data Scientist', 'Manager Data Science',
@@ -257,12 +254,11 @@ if (name === "Project_Names") {
             <div className="space-y-2">
               <Label>Department</Label>
               <select 
-                name="Department" 
-                required 
-                className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold cursor-pointer" 
-                onChange={handleChange}
-                value={formData.Department}
-              >
+  name="Department"
+  value={formData.Department}
+  disabled
+  className="w-full px-4 py-3.5 bg-gray-100 border-2 border-black rounded-2xl text-black font-bold"
+>
                 {['Data Engineering', 'Data Analytics', 'Data Science', 'HR', 'Other'].map(v => (
                   <option key={v} value={v}>{v}</option>
                 ))}
