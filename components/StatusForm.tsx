@@ -82,6 +82,21 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
     if (words > 300) return;
     setWordCount(words);
   }
+  
+  if (name === "Project_Names") {
+  const projects = value
+    .split(',')
+    .map(p => p.trim())
+    .filter(p => p !== '');
+
+  setFormData((prev: any) => ({
+    ...prev,
+    Project_Names: value,
+    Active_Projects_Count: projects.length
+  }));
+
+  return;
+}
 
   // ✅ NORMAL FIELD UPDATE
   setFormData((prev: any) => {
@@ -405,16 +420,13 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
         <SectionTitle icon={Layers} title="Project Attribution" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="space-y-2">
-            <Label>Active Projects Count</Label>
             <input
-              name="Active_Projects_Count"
-              type="number"
-              min="0"
-              required
-              placeholder="Number of projects"
-              className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold placeholder:text-slate-300"
-              onChange={handleChange}
-            />
+  name="Active_Projects_Count"
+  type="number"
+  value={formData.Active_Projects_Count}
+  readOnly
+  className="w-full px-4 py-3.5 bg-gray-100 border-2 border-black rounded-2xl text-black font-bold"
+/>
           </div>
           <div className="space-y-2">
             <Label>Project Manager</Label>
