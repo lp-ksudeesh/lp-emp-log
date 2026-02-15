@@ -251,8 +251,9 @@ if (name === "Project_Names") {
   type="text"
   value={formData.Department}
   readOnly
-  className="w-full px-4 py-3.5 bg-gray-100 border-2 border-black rounded-2xl text-black font-bold"
+  className="w-full px-4 py-3.5 bg-gray-100 border-2 border-black rounded-2xl text-black font-bold cursor-not-allowed"
 />
+ 
             </div>
             {formData.Department === 'Other' && (
               <div className="animate-in fade-in slide-in-from-top-2 duration-300 space-y-2">
