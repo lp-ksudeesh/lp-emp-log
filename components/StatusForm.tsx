@@ -222,6 +222,7 @@ if (name === "Project_Names") {
               <Label>Role & Designation</Label>
              <input 
   name="Designation_Role"
+  placeholder="Designation Role"
   type="text"
   value={formData.Designation_Role}
   readOnly
@@ -249,6 +250,7 @@ if (name === "Project_Names") {
               <input 
   name="Department"
   type="text"
+  placeholder="Department"
   value={formData.Department}
   readOnly
   className="w-full px-4 py-3.5 bg-gray-100 border-2 border-black rounded-2xl text-black font-bold cursor-not-allowed"
