@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   User, Briefcase, Calendar, Clock, ClipboardList, AlertCircle, 
@@ -12,7 +11,9 @@ interface Props {
 
 const StatusForm: React.FC<Props> = ({ onSubmit }) => {
   const [formData, setFormData] = useState<any>({
-    Designation_Role: 'Associate Data Analyst',
+    Employee_Id: '',
+    Full_Name: '',
+    Designation_Role: '',
     Department: 'Data Engineering',
     Employment_Type: 'Full-time',
     Shift_Type: 'General',
@@ -22,7 +23,9 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
     Work_Date: new Date().toISOString().split('T')[0],
     Hours_Worked: '',
     Overtime_Hours: '0',
-    Has_Blockers: 'No'
+    Has_Blockers: 'No',
+    Active_Projects_Count: 0,
+    Project_Names: ''
   });
 
   const [overtimeSuggested, setOvertimeSuggested] = useState(false);
@@ -33,66 +36,117 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
     return str.trim() ? str.trim().split(/\s+/).length : 0;
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    
-    if (name === 'Task_Summary') {
-      const words = countWords(value);
-      if (words > 300) return; // Hard limit at 300 words
-      setWordCount(words);
+  const handleChange = async (
+  e: React.ChangeEvent<
+    HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+  >
+) => {
+  const { name, value } = e.target;
+
+  // ✅ If Employee ID changes → fetch employee details
+  if (name === "Employee_Id") {
+    setFormData((prev: any) => ({
+      ...prev,
+      Employee_Id: value
+    }));
+
+    if (value.trim().length > 0) {
+      try {
+        const response = await fetch(`/employee-by-id/${value}`);
+        if (response.ok) {
+          const data = await response.json();
+
+          setFormData((prev: any) => ({
+            ...prev,
+            Employee_Id: value,
+            Full_Name: data.Full_Name,
+            Designation_Role: data.Designation_Role,
+            Department: data.Department
+          }));
+        }
+      } catch (err) {
+        console.error("Employee lookup failed", err);
+      }
     }
 
-    setFormData((prev: any) => {
-      const newData = { ...prev, [name]: value };
-      
-      if (name === 'Hours_Worked') {
-        const hours = parseFloat(value);
-        if (!isNaN(hours)) {
-          if (hours > 9) {
-            newData.Overtime_Hours = (hours - 9).toFixed(2);
-            setOvertimeSuggested(true);
-          } else {
-            newData.Overtime_Hours = '0';
-            setOvertimeSuggested(false);
-          }
-          setShowShortHoursReason(hours < 9);
+    return; // stop further processing
+  }
+
+  // Word counter logic
+  if (name === 'Task_Summary') {
+    const words = countWords(value);
+    if (words > 300) return;
+    setWordCount(words);
+  }
+
+  setFormData((prev: any) => {
+    const newData = { ...prev, [name]: value };
+
+    if (name === 'Hours_Worked') {
+      const hours = parseFloat(value);
+      if (!isNaN(hours)) {
+        if (hours > 9) {
+          newData.Overtime_Hours = (hours - 9).toFixed(2);
+          setOvertimeSuggested(true);
         } else {
-          setShowShortHoursReason(false);
-          setOvertimeSuggested(false);
           newData.Overtime_Hours = '0';
+          setOvertimeSuggested(false);
         }
+        setShowShortHoursReason(hours < 9);
+      } else {
+        setShowShortHoursReason(false);
+        setOvertimeSuggested(false);
+        newData.Overtime_Hours = '0';
       }
-      return newData;
-    });
+    }
+
+    return newData;
+  });
+ 
+
+
+    // ✅ AUTO-FILL EMPLOYEE DETAILS
+    if (name === 'Employee_Id' && value.trim() !== '') {
+      try {
+        const response = await fetch(`/employee-by-id/${value}`);
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        setFormData((prev: any) => ({
+          ...prev,
+          Employee_Id: value,
+          Full_Name: data.Full_Name,
+          Designation_Role: data.Designation_Role,
+          Department: data.Department
+        }));
+      } catch (err) {
+        console.error("Employee lookup failed", err);
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const response = await fetch('/submit-status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
-    });
+    try {
+      const response = await fetch('/submit-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
 
-    if (!response.ok) {
-      console.error("Insert failed");
-      return;
+      if (!response.ok) {
+        console.error("Insert failed");
+        return;
+      }
+
+      onSubmit(formData as EmployeeDailyStatus);
+
+    } catch (error) {
+      console.error("Submit error:", error);
     }
-
-    onSubmit(formData as EmployeeDailyStatus);
-
-  } catch (error) {
-    console.error("Submit error:", error);
-  }
-};
- 
- 
+  };
 
   const SectionTitle = ({ icon: Icon, title }: { icon: any, title: string }) => (
     <div className="flex items-center gap-2 mb-6 border-b-2 border-black pb-2">
@@ -113,7 +167,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
       onSubmit={handleSubmit}
       className="bg-white p-8 md:p-12 rounded-[2rem] shadow-2xl shadow-slate-400/20 border-2 border-black space-y-10"
     >
-      {/* 1. Personal & Role Info */}
+		{/* 1. Personal & Role Info */}
       <section>
         <SectionTitle icon={User} title="Employee Identification" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
@@ -122,13 +176,16 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
             <div className="relative">
               <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black opacity-40" />
               <input
-                name="Employee_Id"
-                type="text"
-                placeholder="Ex: EMP-10452"
-                className="w-full pl-11 pr-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold placeholder:text-slate-300"
-                required
-                onChange={handleChange}
-              />
+  name="Employee_Id"
+  type="text"
+  placeholder="Ex: EMP-10452"
+  value={formData.Employee_Id}
+  required
+  onChange={handleChange}
+  className="w-full pl-11 pr-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold placeholder:text-slate-300"
+/>
+
+ 
             </div>
           </div>
 
@@ -137,13 +194,15 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black opacity-40" />
               <input
-                name="Full_Name"
-                type="text"
-                placeholder="Your official name"
-                className="w-full pl-11 pr-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold placeholder:text-slate-300"
-                required
-                onChange={handleChange}
-              />
+  name="Full_Name"
+  type="text"
+  placeholder="Your official name"
+  value={formData.Full_Name}
+  required
+  onChange={handleChange}
+  className="w-full pl-11 pr-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold placeholder:text-slate-300"
+/>
+ 
             </div>
           </div>
 
@@ -303,7 +362,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
             />
           </div>
         )}
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <div className="space-y-2">
             <Label>Daily Work Status</Label>
@@ -482,3 +541,4 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
 };
 
 export default StatusForm;
+ 
