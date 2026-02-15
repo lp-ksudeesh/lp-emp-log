@@ -82,8 +82,8 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
     if (words > 300) return;
     setWordCount(words);
   }
-
-  if (name === "Project_Names") {
+  // ✅ Auto calculate project count
+if (name === "Project_Names") {
   const projects = value
     .split(',')
     .map(p => p.trim())
@@ -97,6 +97,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
 
   return;
 }
+ 
 
   // ✅ NORMAL FIELD UPDATE
   setFormData((prev: any) => {
@@ -420,7 +421,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
         <SectionTitle icon={Layers} title="Project Attribution" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="space-y-2">
-          <Label>Active Projects Count</Label>
+            <Label>Active Projects Count</Label>
             <input
   name="Active_Projects_Count"
   type="number"
@@ -428,6 +429,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
   readOnly
   className="w-full px-4 py-3.5 bg-gray-100 border-2 border-black rounded-2xl text-black font-bold"
 />
+ 
           </div>
           <div className="space-y-2">
             <Label>Project Manager</Label>
