@@ -82,7 +82,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
     if (words > 300) return;
     setWordCount(words);
   }
-  
+
   if (name === "Project_Names") {
   const projects = value
     .split(',')
@@ -420,6 +420,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
         <SectionTitle icon={Layers} title="Project Attribution" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="space-y-2">
+          <Label>Active Projects Count</Label>
             <input
   name="Active_Projects_Count"
   type="number"
