@@ -220,21 +220,14 @@ if (name === "Project_Names") {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Role & Designation</Label>
-             <select 
+             <input 
   name="Designation_Role"
+  type="text"
   value={formData.Designation_Role}
-  disabled
+  readOnly
   className="w-full px-4 py-3.5 bg-gray-100 border-2 border-black rounded-2xl text-black font-bold"
->
-                {[
-                  'Associate Data Analyst', 'Associate Data Engineer', 'Data Engineer',
-                  'Data Analyst', 'Data Scientist', 'Manager Data Science',
-                  'Data Engineer Lead', 'Data Analyst Lead', 'Associate Data Scientist',
-                  'Data Scientist Lead', 'HR Generalist', 'Senior HR Generalist', 'Other'
-                ].map(v => (
-                  <option key={v} value={v}>{v}</option>
-                ))}
-              </select>
+/>
+
             </div>
             {formData.Designation_Role === 'Other' && (
               <div className="animate-in fade-in slide-in-from-top-2 duration-300 space-y-2">
@@ -255,14 +248,11 @@ if (name === "Project_Names") {
               <Label>Department</Label>
               <select 
   name="Department"
+  type="text"
   value={formData.Department}
-  disabled
+  readOnly
   className="w-full px-4 py-3.5 bg-gray-100 border-2 border-black rounded-2xl text-black font-bold"
->
-                {['Data Engineering', 'Data Analytics', 'Data Science', 'HR', 'Other'].map(v => (
-                  <option key={v} value={v}>{v}</option>
-                ))}
-              </select>
+/>
             </div>
             {formData.Department === 'Other' && (
               <div className="animate-in fade-in slide-in-from-top-2 duration-300 space-y-2">
