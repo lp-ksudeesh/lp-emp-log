@@ -208,6 +208,7 @@ if (name === "Project_Names") {
               <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black opacity-40" />
               <input
   name="Full_Name"
+  placeholder="Full Name"
   type="text"
   value={formData.Full_Name}
   readOnly
