@@ -43,7 +43,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
 ) => {
   const { name, value } = e.target;
 
-  // ✅ If Employee ID changes → fetch employee details
+  // ✅ EMPLOYEE ID AUTO-FILL
   if (name === "Employee_Id") {
     setFormData((prev: any) => ({
       ...prev,
@@ -53,50 +53,57 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
     if (value.trim().length >= 4) {
       try {
         const response = await fetch(`/employee-by-id/${value}`);
-        if (response.ok) {
-          const data = await response.json();
 
-          setFormData((prev: any) => ({
-            ...prev,
-            Employee_Id: value,
-            Full_Name: data.Full_Name,
-            Designation_Role: data.Designation_Role,
-            Department: data.Department
-          }));
+        if (!response.ok) {
+          console.log("Employee not found");
+          return;
         }
+
+        const data = await response.json();
+
+        setFormData((prev: any) => ({
+          ...prev,
+          Employee_Id: value,
+          Full_Name: data.Full_Name || "",
+          Designation_Role: data.Designation_Role || "",
+          Department: data.Department || ""
+        }));
       } catch (err) {
-        console.error("Employee lookup failed", err);
+        console.error("Employee lookup failed:", err);
       }
     }
 
-    return; // stop further processing
+    return; // stop here
   }
 
-  // Word counter logic
-  if (name === 'Task_Summary') {
+  // ✅ WORD COUNT
+  if (name === "Task_Summary") {
     const words = countWords(value);
     if (words > 300) return;
     setWordCount(words);
   }
 
+  // ✅ NORMAL FIELD UPDATE
   setFormData((prev: any) => {
     const newData = { ...prev, [name]: value };
 
-    if (name === 'Hours_Worked') {
+    if (name === "Hours_Worked") {
       const hours = parseFloat(value);
+
       if (!isNaN(hours)) {
         if (hours > 9) {
           newData.Overtime_Hours = (hours - 9).toFixed(2);
           setOvertimeSuggested(true);
         } else {
-          newData.Overtime_Hours = '0';
+          newData.Overtime_Hours = "0";
           setOvertimeSuggested(false);
         }
+
         setShowShortHoursReason(hours < 9);
       } else {
+        newData.Overtime_Hours = "0";
         setShowShortHoursReason(false);
         setOvertimeSuggested(false);
-        newData.Overtime_Hours = '0';
       }
     }
 
