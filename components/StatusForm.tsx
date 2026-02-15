@@ -50,7 +50,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
       Employee_Id: value
     }));
 
-    if (value.trim().length > 0) {
+    if (value.trim().length >= 4) {
       try {
         const response = await fetch(`/employee-by-id/${value}`);
         if (response.ok) {
@@ -102,29 +102,9 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
 
     return newData;
   });
+};
  
-
-
-    // ✅ AUTO-FILL EMPLOYEE DETAILS
-    if (name === 'Employee_Id' && value.trim() !== '') {
-      try {
-        const response = await fetch(`/employee-by-id/${value}`);
-        if (!response.ok) return;
-
-        const data = await response.json();
-
-        setFormData((prev: any) => ({
-          ...prev,
-          Employee_Id: value,
-          Full_Name: data.Full_Name,
-          Designation_Role: data.Designation_Role,
-          Department: data.Department
-        }));
-      } catch (err) {
-        console.error("Employee lookup failed", err);
-      }
-    }
-  };
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
