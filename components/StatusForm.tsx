@@ -50,7 +50,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
       Employee_Id: value
     }));
 
-    if (value.trim().length >= 4) {
+    if (value.trim().length === 5) {
       try {
         const response = await fetch(`/employee-by-id/${value}`);
 
@@ -165,10 +165,20 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
               <input
   name="Employee_Id"
   type="text"
-  placeholder="Ex: EMP-10452"
+  placeholder="Ex: 10007"
   value={formData.Employee_Id}
   required
-  onChange={handleChange}
+  maxLength={5}
+  pattern="\d{5}"
+  onChange={(e) => {
+    const value = e.target.value.replace(/\D/g, ''); // remove non-numbers
+    if (value.length <= 5) {
+      handleChange({
+        ...e,
+        target: { ...e.target, name: 'Employee_Id', value }
+      } as any);
+    }
+  }}
   className="w-full pl-11 pr-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold placeholder:text-slate-300"
 />
 
