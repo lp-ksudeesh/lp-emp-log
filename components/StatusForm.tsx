@@ -43,6 +43,16 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
 ) => {
   const { name, value } = e.target;
 
+  // ✅ DATE VALIDATION
+if (name === "Work_Date") {
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  if (value !== todayStr && formData.Leave_Type === "None") {
+    alert("You can only submit status for today unless you are on leave.");
+    return;
+  }
+}
+
   // ✅ LEAVE LOGIC
 if (name === "Leave_Type") {
   if (value !== "None") {
@@ -196,7 +206,7 @@ if (name === "Project_Names") {
       {required && <span className="text-red-600 ml-1 font-black">*</span>}
     </label>
   );
-
+  const today = new Date().toISOString().split("T")[0];
   const isOnLeave = formData.Leave_Type !== "None";
 
   return (
@@ -341,13 +351,15 @@ if (name === "Project_Names") {
             <div className="relative">
               <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black opacity-40" />
               <input
-                name="Work_Date"
-                type="date"
-                defaultValue={formData.Work_Date}
-                className="w-full pl-11 pr-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold"
-                required
-                onChange={handleChange}
-              />
+  name="Work_Date"
+  type="date"
+  value={formData.Work_Date}
+  max={!isOnLeave ? today : undefined}
+  min={!isOnLeave ? today : undefined}
+  onChange={handleChange}
+  required
+  className="w-full pl-11 pr-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold"
+/>
             </div>
           </div>
 

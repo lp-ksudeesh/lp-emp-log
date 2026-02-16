@@ -69,6 +69,34 @@ app.post('/submit-status', async (req, res) => {
 
     const r = req.body;
 
+    // ===============================
+// DATE VALIDATION LOGIC
+// ===============================
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const submittedDate = new Date(r.Work_Date);
+submittedDate.setHours(0, 0, 0, 0);
+
+// If NOT leave → only allow today
+if (r.Leave_Type === 'None') {
+  if (submittedDate.getTime() !== today.getTime()) {
+    return res.status(400).json({
+      error: "You can only submit status for today."
+    });
+  }
+}
+
+// If leave → allow past date but not future
+if (r.Leave_Type !== 'None') {
+  if (submittedDate.getTime() > today.getTime()) {
+    return res.status(400).json({
+      error: "Leave cannot be submitted for future dates."
+    });
+  }
+}
+
     await pool.request()
       .input('Employee_Id', sql.VarChar, r.Employee_Id)
       .input('Full_Name', sql.VarChar, r.Full_Name)
