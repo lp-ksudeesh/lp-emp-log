@@ -85,6 +85,23 @@ if (name === "Leave_Type") {
   }
 
   return;
+
+  // ✅ LEAVE DATE VALIDATION
+if (formData.Leave_Type !== "None") {
+  if (!formData.Leave_Start_Date || !formData.Leave_End_Date) {
+    alert("Please select leave date range");
+    return;
+  }
+
+  const workDate = new Date(formData.Work_Date);
+  const start = new Date(formData.Leave_Start_Date);
+  const end = new Date(formData.Leave_End_Date);
+
+  if (workDate < start || workDate > end) {
+    alert("Work date must fall within selected leave range");
+    return;
+  }
+}
 }
 
   // ✅ EMPLOYEE ID AUTO-FILL

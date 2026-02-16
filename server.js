@@ -69,7 +69,8 @@ app.post('/submit-status', async (req, res) => {
 
     const r = req.body;
 
-    // ===============================
+
+// ===============================
 // DATE VALIDATION LOGIC
 // ===============================
 
@@ -88,14 +89,39 @@ if (r.Leave_Type === 'None') {
   }
 }
 
-// If leave → allow past date but not future
+// If leave → validate range
 if (r.Leave_Type !== 'None') {
-  if (submittedDate.getTime() > today.getTime()) {
+
+  if (!r.Leave_Start_Date || !r.Leave_End_Date) {
     return res.status(400).json({
-      error: "Leave cannot be submitted for future dates."
+      error: "Leave start and end date are required."
+    });
+  }
+
+  const leaveStart = new Date(r.Leave_Start_Date);
+  const leaveEnd = new Date(r.Leave_End_Date);
+
+  leaveStart.setHours(0,0,0,0);
+  leaveEnd.setHours(0,0,0,0);
+
+  // Cannot apply leave for future beyond today
+  if (leaveEnd.getTime() > today.getTime()) {
+    return res.status(400).json({
+      error: "Leave cannot extend into future."
+    });
+  }
+
+  // Work date must be inside leave range
+  if (
+    submittedDate.getTime() < leaveStart.getTime() ||
+    submittedDate.getTime() > leaveEnd.getTime()
+  ) {
+    return res.status(400).json({
+      error: "Work date must be within leave date range."
     });
   }
 }
+ 
 
     await pool.request()
       .input('Employee_Id', sql.VarChar, r.Employee_Id)
@@ -113,6 +139,8 @@ if (r.Leave_Type !== 'None') {
       .input('Overtime_Hours', sql.Decimal(4, 2), r.Overtime_Hours || 0)
       .input('Short_Hours_Reason', sql.NVarChar, r.Short_Hours_Reason || null)
       .input('Leave_Type', sql.VarChar, r.Leave_Type)
+      .input('Leave_Start_Date', sql.Date, r.Leave_Start_Date || null)
+      .input('Leave_End_Date', sql.Date, r.Leave_End_Date || null)
       .input('Active_Projects_Count', sql.Int, r.Active_Projects_Count)
       .input('Project_Manager_Name', sql.VarChar, r.Project_Manager_Name)
       .input('Project_Names', sql.VarChar, r.Project_Names)
@@ -138,6 +166,8 @@ if (r.Leave_Type !== 'None') {
           Overtime_Hours,
           Short_Hours_Reason,
           Leave_Type,
+          Leave_Start_Date,
+          Leave_End_Date
           Active_Projects_Count,
           Project_Manager_Name,
           Project_Names,
@@ -163,6 +193,8 @@ if (r.Leave_Type !== 'None') {
           @Overtime_Hours,
           @Short_Hours_Reason,
           @Leave_Type,
+          @Leave_Start_Date,
+          @Leave_End_Date
           @Active_Projects_Count,
           @Project_Manager_Name,
           @Project_Names,
