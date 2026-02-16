@@ -19,6 +19,8 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
     Shift_Type: 'General',
     Work_Status: 'On Track',
     Leave_Type: 'None',
+    Leave_Start_Date: "",
+    Leave_End_Date: "",
     Task_Type: 'Client Project',
     Work_Date: new Date().toISOString().split('T')[0],
     Hours_Worked: '',
@@ -432,13 +434,49 @@ if (name === "Project_Names") {
             </select>
           </div>
           <div className="space-y-2">
-            <Label>Leave Type</Label>
-            <select name="Leave_Type" required className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold cursor-pointer" onChange={handleChange}>
-              {['None', 'Sick Leave', 'Casual Leave', 'Paid Leave', 'Unpaid Leave'].map(v => (
-                <option key={v} value={v}>{v}</option>
-              ))}
-            </select>
-          </div>
+  <Label>Leave Type</Label>
+  <select
+    name="Leave_Type"
+    required
+    value={formData.Leave_Type}
+    onChange={handleChange}
+    className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold cursor-pointer"
+  >
+    {['None', 'Sick Leave', 'Casual Leave', 'Paid Leave', 'Unpaid Leave'].map(v => (
+      <option key={v} value={v}>{v}</option>
+    ))}
+  </select>
+</div>
+
+{/* ✅ Show Leave Date Range For All Leave Types Except None */}
+{formData.Leave_Type !== "None" && (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+    <div className="space-y-2">
+      <Label>Leave Start Date</Label>
+      <input
+        type="date"
+        name="Leave_Start_Date"
+        value={formData.Leave_Start_Date}
+        required
+        onChange={handleChange}
+        className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl"
+      />
+    </div>
+
+    <div className="space-y-2">
+      <Label>Leave End Date</Label>
+      <input
+        type="date"
+        name="Leave_End_Date"
+        value={formData.Leave_End_Date}
+        required
+        min={formData.Leave_Start_Date}
+        onChange={handleChange}
+        className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl"
+      />
+    </div>
+  </div>
+)}
         </div>
 
         {formData.Work_Status === 'Delayed' && (
