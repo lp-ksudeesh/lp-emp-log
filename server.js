@@ -122,6 +122,10 @@ if (r.Leave_Type !== 'None') {
   }
 }
 
+// ===============================
+// DUPLICATE ENTRY CHECK
+// ===============================
+
 const existing = await pool.request()
   .input('Employee_Id', sql.VarChar, r.Employee_Id)
   .input('Work_Date', sql.Date, r.Work_Date)
@@ -137,8 +141,7 @@ if (existing.recordset.length > 0) {
   });
 }
  
- 
-
+// 3️ INSERT QUERY
     await pool.request()
       .input('Employee_Id', sql.VarChar, r.Employee_Id)
       .input('Full_Name', sql.VarChar, r.Full_Name)
