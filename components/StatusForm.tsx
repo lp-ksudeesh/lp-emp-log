@@ -50,7 +50,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
       Employee_Id: value
     }));
 
-    if (value.trim().length === 5) {
+    if (value.trim().length >= 5) {
       try {
         const response = await fetch(`/employee-by-id/${value}`);
 
