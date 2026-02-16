@@ -122,6 +122,31 @@ if (r.Leave_Type !== 'None') {
   }
 }
 
+if (r.Leave_Type !== 'None') {
+
+  const leaveStart = new Date(r.Leave_Start_Date);
+  const leaveEnd = new Date(r.Leave_End_Date);
+  const submittedDate = new Date(r.Work_Date);
+
+  leaveStart.setHours(0,0,0,0);
+  leaveEnd.setHours(0,0,0,0);
+  submittedDate.setHours(0,0,0,0);
+
+  // End date cannot be before start date
+  if (leaveEnd < leaveStart) {
+    return res.status(400).json({
+      error: "Leave end date cannot be before leave start date."
+    });
+  }
+
+  // Work date must be inside leave range
+  if (submittedDate < leaveStart || submittedDate > leaveEnd) {
+    return res.status(400).json({
+      error: "Work date must fall within leave date range."
+    });
+  }
+}
+
 // ===============================
 // DUPLICATE ENTRY CHECK
 // ===============================
