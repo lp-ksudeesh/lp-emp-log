@@ -121,6 +121,22 @@ if (r.Leave_Type !== 'None') {
     });
   }
 }
+
+const existing = await pool.request()
+  .input('Employee_Id', sql.VarChar, r.Employee_Id)
+  .input('Work_Date', sql.Date, r.Work_Date)
+  .query(`
+    SELECT 1 FROM Employee_Daily_Status
+    WHERE Employee_Id = @Employee_Id
+    AND Work_Date = @Work_Date
+  `);
+
+if (existing.recordset.length > 0) {
+  return res.status(400).json({
+    error: "Status already submitted for this date."
+  });
+}
+ 
  
 
     await pool.request()
