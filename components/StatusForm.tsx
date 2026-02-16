@@ -43,6 +43,39 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
 ) => {
   const { name, value } = e.target;
 
+  // ✅ LEAVE LOGIC
+if (name === "Leave_Type") {
+  if (value !== "None") {
+    setFormData((prev: any) => ({
+      ...prev,
+      Leave_Type: value,
+      Hours_Worked: "0",
+      Overtime_Hours: "0",
+      Short_Hours_Reason: "",
+      Task_Summary: "",
+      Work_Status: "On Track",
+      Work_Status_Reason: "",
+      Has_Blockers: "No",
+      Issue_Dependency_Description: "",
+      Active_Projects_Count: 0,
+      Project_Names: "",
+      Project_Manager_Name: "",
+      Task_Type: "Client Project",
+      Other_Task_Type: ""
+    }));
+
+    setShowShortHoursReason(false);
+    setOvertimeSuggested(false);
+  } else {
+    setFormData((prev: any) => ({
+      ...prev,
+      Leave_Type: value
+    }));
+  }
+
+  return;
+}
+
   // ✅ EMPLOYEE ID AUTO-FILL
   if (name === "Employee_Id") {
     setFormData((prev: any) => ({
@@ -164,6 +197,8 @@ if (name === "Project_Names") {
       {required && <span className="text-red-600 ml-1 font-black">*</span>}
     </label>
   );
+
+  const isOnLeave = formData.Leave_Type !== "None";
 
   return (
     <form
@@ -321,6 +356,7 @@ if (name === "Project_Names") {
             <Label>Hours Worked</Label>
             <input
               name="Hours_Worked"
+              disabled={isOnLeave}
               type="number"
               step="0.1"
               min="0"
@@ -336,6 +372,7 @@ if (name === "Project_Names") {
             <div className="relative">
               <input
                 name="Overtime_Hours"
+                disabled={isOnLeave}
                 type="number"
                 step="0.1"
                 min="0"
@@ -371,6 +408,7 @@ if (name === "Project_Names") {
             <Label>Daily Work Status</Label>
             <select 
               name="Work_Status" 
+              disabled={isOnLeave}
               required 
               className={`w-full px-4 py-3.5 bg-white border-2 rounded-2xl focus:ring-4 transition-all font-black text-center ${
                 formData.Work_Status === 'Delayed' ? 'border-red-600 text-red-600 focus:ring-red-100' : 'border-green-600 text-green-600 focus:ring-green-100'
@@ -397,6 +435,7 @@ if (name === "Project_Names") {
             <Label>Reason for Delay</Label>
             <textarea
               name="Work_Status_Reason"
+              disabled={isOnLeave}
               required
               placeholder="Why is the status delayed today?"
               className="w-full px-4 py-3.5 bg-white border-2 border-red-600 rounded-2xl h-24 focus:ring-4 focus:ring-red-100 transition-all text-red-600 font-bold resize-none placeholder:text-red-200"
@@ -414,6 +453,7 @@ if (name === "Project_Names") {
             <Label>Active Projects Count</Label>
             <input
   name="Active_Projects_Count"
+  disabled={isOnLeave}
   type="number"
   value={formData.Active_Projects_Count}
   readOnly
@@ -440,6 +480,7 @@ if (name === "Project_Names") {
           <Label>Project Names</Label>
           <input
             name="Project_Names"
+            disabled={isOnLeave}
             type="text"
             required
             placeholder="Apollo, Falcon, Internal Dashboard..."
@@ -455,7 +496,7 @@ if (name === "Project_Names") {
         <div className="grid grid-cols-1 gap-6">
           <div className="space-y-2">
             <Label>Task Type</Label>
-            <select name="Task_Type" required className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold cursor-pointer" onChange={handleChange}>
+            <select name="Task_Type" disabled={isOnLeave} required className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold cursor-pointer" onChange={handleChange}>
               {['Client Project', 'Internal Task', 'Training', 'Innovation', 'Other'].map(v => (
                 <option key={v} value={v}>{v}</option>
               ))}
@@ -467,6 +508,7 @@ if (name === "Project_Names") {
               <Label>Specify Task Type</Label>
               <input
                 name="Other_Task_Type"
+                disabled={isOnLeave}
                 type="text"
                 required
                 placeholder="Enter custom task type"
@@ -485,6 +527,7 @@ if (name === "Project_Names") {
             </div>
             <textarea
               name="Task_Summary"
+              disabled={isOnLeave}
               placeholder="Describe your primary accomplishments for today..."
               className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl h-32 focus:ring-4 focus:ring-black/10 transition-all text-black font-bold resize-none placeholder:text-slate-300"
               onChange={handleChange}
@@ -498,6 +541,7 @@ if (name === "Project_Names") {
               <Label>Are there any blockers?</Label>
               <select 
                 name="Has_Blockers" 
+                disabled={isOnLeave}
                 required 
                 className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-black cursor-pointer"
                 onChange={handleChange}
@@ -517,6 +561,7 @@ if (name === "Project_Names") {
                 </div>
                 <textarea
                   name="Issue_Dependency_Description"
+                  disabled={isOnLeave}
                   required
                   placeholder="List any issues or dependencies that need attention (Mandatory when blockers exist)..."
                   className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl h-24 focus:ring-4 focus:ring-black/10 transition-all text-black font-bold resize-none placeholder:text-slate-300"
