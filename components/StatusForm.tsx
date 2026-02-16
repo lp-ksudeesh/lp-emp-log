@@ -59,7 +59,6 @@ if (name === "Leave_Type") {
       Issue_Dependency_Description: "",
       Active_Projects_Count: 0,
       Project_Names: "",
-      Project_Manager_Name: "",
       Task_Type: "Client Project",
       Other_Task_Type: ""
     }));
