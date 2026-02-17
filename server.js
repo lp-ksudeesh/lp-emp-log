@@ -80,7 +80,7 @@ today.setHours(0, 0, 0, 0);
 const submittedDate = new Date(r.Work_Date);
 submittedDate.setHours(0, 0, 0, 0);
 
-// If NOT leave → only allow today
+// 🚫 If NOT on leave → only today allowed
 if (r.Leave_Type === 'None') {
   if (submittedDate.getTime() !== today.getTime()) {
     return res.status(400).json({
@@ -89,63 +89,37 @@ if (r.Leave_Type === 'None') {
   }
 }
 
-// If leave → validate range
-if (r.Leave_Type !== 'None') {
-
-  if (!r.Leave_Start_Date || !r.Leave_End_Date) {
-    return res.status(400).json({
-      error: "Leave start and end date are required."
-    });
-  }
-
-  const leaveStart = new Date(r.Leave_Start_Date);
-  const leaveEnd = new Date(r.Leave_End_Date);
-
-  leaveStart.setHours(0,0,0,0);
-  leaveEnd.setHours(0,0,0,0);
-
-  // Cannot apply leave for future beyond today
-  if (leaveEnd.getTime() > today.getTime()) {
-    return res.status(400).json({
-      error: "Leave cannot extend into future."
-    });
-  }
-
-  // Work date must be inside leave range
-  if (
-    submittedDate.getTime() < leaveStart.getTime() ||
-    submittedDate.getTime() > leaveEnd.getTime()
-  ) {
-    return res.status(400).json({
-      error: "Work date must be within leave date range."
-    });
-  }
-}
-
+// ✅ If on leave → validate range
 if (r.Leave_Type !== 'None') {
 
   const leaveStart = new Date(r.Leave_Start_Date);
   const leaveEnd = new Date(r.Leave_End_Date);
-  const submittedDate = new Date(r.Work_Date);
 
-  leaveStart.setHours(0,0,0,0);
-  leaveEnd.setHours(0,0,0,0);
-  submittedDate.setHours(0,0,0,0);
+  leaveStart.setHours(0, 0, 0, 0);
+  leaveEnd.setHours(0, 0, 0, 0);
 
-  // End date cannot be before start date
+  // 1️⃣ End date cannot be before start date
   if (leaveEnd < leaveStart) {
     return res.status(400).json({
       error: "Leave end date cannot be before leave start date."
     });
   }
 
-  // Work date must be inside leave range
+  // 2️⃣ Leave cannot extend into future
+  if (leaveEnd > today) {
+    return res.status(400).json({
+      error: "Leave cannot extend into future."
+    });
+  }
+
+  // 3️⃣ Work date must fall inside leave range
   if (submittedDate < leaveStart || submittedDate > leaveEnd) {
     return res.status(400).json({
       error: "Work date must fall within leave date range."
     });
   }
 }
+ 
 
 // ===============================
 // DUPLICATE ENTRY CHECK
@@ -211,7 +185,7 @@ if (existing.recordset.length > 0) {
           Short_Hours_Reason,
           Leave_Type,
           Leave_Start_Date,
-          Leave_End_Date
+          Leave_End_Date,
           Active_Projects_Count,
           Project_Manager_Name,
           Project_Names,
@@ -238,7 +212,7 @@ if (existing.recordset.length > 0) {
           @Short_Hours_Reason,
           @Leave_Type,
           @Leave_Start_Date,
-          @Leave_End_Date
+          @Leave_End_Date,
           @Active_Projects_Count,
           @Project_Manager_Name,
           @Project_Names,
