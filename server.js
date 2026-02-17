@@ -71,7 +71,7 @@ app.post('/submit-status', async (req, res) => {
 
 
 // ===============================
-// CLEAN DATE VALIDATION (HR MODE)
+// DATE VALIDATION - HR MODE
 // ===============================
 
 const today = new Date();
@@ -80,11 +80,15 @@ today.setHours(0, 0, 0, 0);
 const submittedDate = new Date(r.Work_Date);
 submittedDate.setHours(0, 0, 0, 0);
 
-// -----------------------------
-// CASE 1 — NORMAL WORK DAY
-// -----------------------------
-if (r.Leave_Type === 'None') {
+// 1️⃣ No future work logging
+if (submittedDate > today) {
+  return res.status(400).json({
+    error: "You cannot submit work for future dates."
+  });
+}
 
+// 2️⃣ If NOT leave → only allow today
+if (r.Leave_Type === 'None') {
   if (submittedDate.getTime() !== today.getTime()) {
     return res.status(400).json({
       error: "You can only submit status for today."
@@ -92,25 +96,29 @@ if (r.Leave_Type === 'None') {
   }
 }
 
-// -----------------------------
-// CASE 2 — LEAVE DAY
-// -----------------------------
-if (r.Leave_Type !== 'None') {
+// 3️⃣ If Sick Leave → allow past dates (no future)
+if (r.Leave_Type === 'Sick Leave') {
+  // No extra restriction except no future
+}
 
+// 4️⃣ If Planned Leave (Casual / Paid / Unpaid)
+if (
+  r.Leave_Type === 'Casual Leave' ||
+  r.Leave_Type === 'Paid Leave' ||
+  r.Leave_Type === 'Unpaid Leave'
+) {
   const leaveStart = new Date(r.Leave_Start_Date);
   const leaveEnd = new Date(r.Leave_End_Date);
 
   leaveStart.setHours(0,0,0,0);
   leaveEnd.setHours(0,0,0,0);
 
-  // End cannot be before start
   if (leaveEnd < leaveStart) {
     return res.status(400).json({
       error: "Leave end date cannot be before start date."
     });
   }
 
-  // Work date must fall inside leave range
   if (submittedDate < leaveStart || submittedDate > leaveEnd) {
     return res.status(400).json({
       error: "Work date must be within leave date range."
