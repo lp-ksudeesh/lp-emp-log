@@ -201,9 +201,10 @@ if (name === "Project_Names") {
       });
 
       if (!response.ok) {
-        console.error("Insert failed");
-        return;
-      }
+  const errorData = await response.json();
+  alert(errorData.error || "Submission failed");
+  return;
+}
 
       onSubmit(formData as EmployeeDailyStatus);
 
