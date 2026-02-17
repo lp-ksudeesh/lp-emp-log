@@ -226,8 +226,27 @@ if (name === "Project_Names") {
       {required && <span className="text-red-600 ml-1 font-black">*</span>}
     </label>
   );
-  const today = new Date().toISOString().split("T")[0];
-  const isOnLeave = formData.Leave_Type !== "None";
+  const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const workDate = new Date(formData.Work_Date);
+workDate.setHours(0, 0, 0, 0);
+
+let isOnLeave = false;
+
+if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leave_End_Date) {
+
+  const start = new Date(formData.Leave_Start_Date);
+  const end = new Date(formData.Leave_End_Date);
+
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  // Disable only if selected work date falls inside leave range
+  if (workDate >= start && workDate <= end) {
+    isOnLeave = true;
+  }
+}
 
   return (
     <form
