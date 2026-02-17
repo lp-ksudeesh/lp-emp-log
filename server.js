@@ -33,7 +33,7 @@ const poolConnect = pool.connect()
    EMPLOYEE LOOKUP BY ID
 ================================ */
 
-app.get('/employee-by-id/:id', async (req, res) => {
+app.get(`/employee-by-id/:id`, async (req, res) => {
   try {
     await poolConnect;
 
