@@ -71,7 +71,7 @@ app.post('/submit-status', async (req, res) => {
 
 
 // ===============================
-// DATE VALIDATION LOGIC
+// CLEAN DATE VALIDATION (HR MODE)
 // ===============================
 
 const today = new Date();
@@ -80,8 +80,11 @@ today.setHours(0, 0, 0, 0);
 const submittedDate = new Date(r.Work_Date);
 submittedDate.setHours(0, 0, 0, 0);
 
-// 🚫 If NOT on leave → only today allowed
+// -----------------------------
+// CASE 1 — NORMAL WORK DAY
+// -----------------------------
 if (r.Leave_Type === 'None') {
+
   if (submittedDate.getTime() !== today.getTime()) {
     return res.status(400).json({
       error: "You can only submit status for today."
@@ -89,38 +92,34 @@ if (r.Leave_Type === 'None') {
   }
 }
 
-// ✅ If on leave → validate range
+// -----------------------------
+// CASE 2 — LEAVE DAY
+// -----------------------------
 if (r.Leave_Type !== 'None') {
 
   const leaveStart = new Date(r.Leave_Start_Date);
   const leaveEnd = new Date(r.Leave_End_Date);
 
-  leaveStart.setHours(0, 0, 0, 0);
-  leaveEnd.setHours(0, 0, 0, 0);
+  leaveStart.setHours(0,0,0,0);
+  leaveEnd.setHours(0,0,0,0);
 
-  // 1️⃣ End date cannot be before start date
+  // End cannot be before start
   if (leaveEnd < leaveStart) {
     return res.status(400).json({
-      error: "Leave end date cannot be before leave start date."
+      error: "Leave end date cannot be before start date."
     });
   }
 
-  // 2️⃣ Leave cannot extend into future
-  if (leaveEnd > today) {
-    return res.status(400).json({
-      error: "Leave cannot extend into future."
-    });
-  }
-
-  // 3️⃣ Work date must fall inside leave range
+  // Work date must fall inside leave range
   if (submittedDate < leaveStart || submittedDate > leaveEnd) {
     return res.status(400).json({
-      error: "Work date must fall within leave date range."
+      error: "Work date must be within leave date range."
     });
   }
 }
  
-
+ 
+ 
 // ===============================
 // DUPLICATE ENTRY CHECK
 // ===============================
@@ -139,6 +138,7 @@ if (existing.recordset.length > 0) {
     error: "Status already submitted for this date."
   });
 }
+ 
  
 // 3️ INSERT QUERY
     await pool.request()
