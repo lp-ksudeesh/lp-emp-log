@@ -555,7 +555,7 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
                 name="Project_Manager_Name"
                 type="text"
                 required
-                placeholder="Manager's name"
+                placeholder="Reporting Manager's name"
                 className="w-full pl-11 pr-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold placeholder:text-slate-300"
                 onChange={handleChange}
               />
