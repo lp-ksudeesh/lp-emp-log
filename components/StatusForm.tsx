@@ -548,7 +548,7 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
  
           </div>
           <div className="space-y-2">
-            <Label>Project Manager</Label>
+            <Label>Reporting Manager</Label>
             <div className="relative">
               <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black opacity-40" />
               <input
