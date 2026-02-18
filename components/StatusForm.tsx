@@ -22,7 +22,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
     Leave_Start_Date: "",
     Leave_End_Date: "",
     Task_Type: 'Client Project',
-    Work_Date: new Date().toISOString().split('T')[0],
+    Work_Date: new Date().toLocaleDateString('en-CA'),
     Hours_Worked: '',
     Overtime_Hours: '0',
     Has_Blockers: 'No',
@@ -47,7 +47,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
 
   // ✅ DATE VALIDATION
 if (name === "Work_Date") {
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = new Date().toLocaleDateString('en-CA');
 
   if (value !== todayStr && formData.Leave_Type === "None") {
     alert("You can only submit status for today unless you are on leave.");
