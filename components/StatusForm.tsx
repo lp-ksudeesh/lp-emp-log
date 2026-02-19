@@ -48,6 +48,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
   // ✅ DATE VALIDATION
 if (name === "Work_Date") {
   const todayStr = new Date().toLocaleDateString('en-CA');
+ 
 
   if (value !== todayStr && formData.Leave_Type === "None") {
     alert("You can only submit status for today unless you are on leave.");
