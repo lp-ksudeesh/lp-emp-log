@@ -87,18 +87,18 @@ if (submittedDate > today) {
   });
 }
 
-// 2️⃣ If NOT leave → only allow today
-if (r.Leave_Type === 'None') {
-  if (submittedDate.getTime() !== today.getTime()) {
-    return res.status(400).json({
-      error: "You can only submit status for today."
-    });
-  }
+// Block future work only if no leave
+if (r.Leave_Type === "None" && submittedDate > today) {
+  return res.status(400).json({
+    error: "You cannot submit work for future dates."
+  });
 }
 
-// 3️⃣ If Sick Leave → allow past dates (no future)
-if (r.Leave_Type === 'Sick Leave') {
-  // No extra restriction except no future
+// Sick leave cannot be future
+if (r.Leave_Type === "Sick Leave" && submittedDate > today) {
+  return res.status(400).json({
+    error: "Sick leave cannot be future."
+  });
 }
 
 // 4️⃣ If Planned Leave (Casual / Paid / Unpaid)
