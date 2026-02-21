@@ -2,15 +2,12 @@ const express = require('express');
 const sql = require('mssql');
 const path = require('path');
 const cors = require('cors');
-
 const app = express();
 app.use(cors());
 app.use(express.json());
-
 /* ===============================
    SQL CONFIG (ENV BASED ONLY)
 ================================ */
-
 const sqlConfig = {
   server: process.env.DB_SERVER,
   database: process.env.DB_NAME,
@@ -26,13 +23,22 @@ const sqlConfig = {
     idleTimeoutMillis: 30000
   }
 };
-
 let pool;
-
+/* ===============================
+   IST UTILITY (FORCE INDIA TIME)
+================================ */
+const getISTDate = () => {
+  const now = new Date();
+  const istString = now.toLocaleString("en-US", {
+    timeZone: "Asia/Kolkata"
+  });
+  const istDate = new Date(istString);
+  istDate.setHours(0, 0, 0, 0);
+  return istDate;
+};
 /* ===============================
    CONNECT TO DATABASE
 ================================ */
-
 async function connectDB() {
   try {
     pool = await sql.connect(sqlConfig);
@@ -41,17 +47,13 @@ async function connectDB() {
     console.error("❌ Database connection failed:", err);
   }
 }
-
 connectDB();
-
 /* ===============================
    EMPLOYEE LOOKUP BY ID
 ================================ */
-
 app.get('/employee-by-id/:id', async (req, res) => {
   try {
     const id = req.params.id;
-
     const result = await pool.request()
       .input('Employee_Id', sql.VarChar, id)
       .query(`
@@ -59,40 +61,87 @@ app.get('/employee-by-id/:id', async (req, res) => {
         FROM Employees
         WHERE Employee_Id = @Employee_Id
       `);
-
     if (result.recordset.length === 0) {
       return res.status(404).json({ message: "Employee not found" });
     }
-
     res.json(result.recordset[0]);
-
   } catch (err) {
     console.error("Lookup error:", err);
     res.status(500).json({ error: "Lookup failed" });
   }
 });
-
 /* ===============================
    SUBMIT DAILY STATUS
 ================================ */
-
 app.post('/submit-status', async (req, res) => {
   try {
     const r = req.body;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
+    const today = getISTDate();
     const submittedDate = new Date(r.Work_Date);
     submittedDate.setHours(0, 0, 0, 0);
-
-    if (submittedDate > today) {
+    /* ===============================
+       STRICT IST WORK DATE CHECK
+    ================================ */
+    if (submittedDate.getTime() !== today.getTime()) {
       return res.status(400).json({
-        error: "You cannot submit work for future dates."
+        error: "Work date must be today (IST)."
       });
     }
-
-    // Duplicate check
+    /* ===============================
+       BASIC HOURS VALIDATION
+    ================================ */
+    if (isNaN(parseFloat(r.Hours_Worked))) {
+      return res.status(400).json({
+        error: "Invalid Hours Worked value."
+      });
+    }
+    /* ===============================
+       LEAVE VALIDATION
+    ================================ */
+    if (r.Leave_Type !== "None") {
+      if (!r.Leave_Start_Date || !r.Leave_End_Date) {
+        return res.status(400).json({
+          error: "Leave date range is required."
+        });
+      }
+      const start = new Date(r.Leave_Start_Date);
+      const end = new Date(r.Leave_End_Date);
+      start.setHours(0,0,0,0);
+      end.setHours(0,0,0,0);
+      if (end < start) {
+        return res.status(400).json({
+          error: "Leave end date cannot be before start date."
+        });
+      }
+      if (r.Leave_Type === "Sick Leave") {
+        if (start > today || end > today) {
+          return res.status(400).json({
+            error: "Sick leave can only be applied for today or past dates."
+          });
+        }
+      } else {
+        if (start < today) {
+          return res.status(400).json({
+            error: "Planned leave cannot be applied for past dates."
+          });
+        }
+      }
+      /* Enforce 0 hours if work date inside leave range */
+      const isInsideLeave =
+        submittedDate >= start && submittedDate <= end;
+      if (isInsideLeave && parseFloat(r.Hours_Worked) !== 0) {
+        return res.status(400).json({
+          error: "Hours must be 0 when work date falls inside leave range."
+        });
+      }
+    } else {
+      /* If Leave_Type = None, nullify dates */
+      r.Leave_Start_Date = null;
+      r.Leave_End_Date = null;
+    }
+    /* ===============================
+       DUPLICATE CHECK
+    ================================ */
     const existing = await pool.request()
       .input('Employee_Id', sql.VarChar, r.Employee_Id)
       .input('Work_Date', sql.Date, r.Work_Date)
@@ -101,14 +150,14 @@ app.post('/submit-status', async (req, res) => {
         WHERE Employee_Id = @Employee_Id
         AND Work_Date = @Work_Date
       `);
-
     if (existing.recordset.length > 0) {
       return res.status(400).json({
         error: "Status already submitted for this date."
       });
     }
-
-    // Insert
+    /* ===============================
+       INSERT
+    ================================ */
     await pool.request()
       .input('Employee_Id', sql.VarChar, r.Employee_Id)
       .input('Full_Name', sql.VarChar, r.Full_Name)
@@ -125,8 +174,8 @@ app.post('/submit-status', async (req, res) => {
       .input('Overtime_Hours', sql.Decimal(4, 2), r.Overtime_Hours || 0)
       .input('Short_Hours_Reason', sql.NVarChar, r.Short_Hours_Reason || null)
       .input('Leave_Type', sql.VarChar, r.Leave_Type)
-      .input('Leave_Start_Date', sql.Date, r.Leave_Start_Date || null)
-      .input('Leave_End_Date', sql.Date, r.Leave_End_Date || null)
+      .input('Leave_Start_Date', sql.Date, r.Leave_Start_Date)
+      .input('Leave_End_Date', sql.Date, r.Leave_End_Date)
       .input('Active_Projects_Count', sql.Int, r.Active_Projects_Count)
       .input('Project_Manager_Name', sql.VarChar, r.Project_Manager_Name)
       .input('Project_Names', sql.VarChar, r.Project_Names)
@@ -191,31 +240,23 @@ app.post('/submit-status', async (req, res) => {
           @Issue_Dependency_Description
         )
       `);
-
     res.status(200).json({ message: "Saved successfully" });
-
   } catch (err) {
     console.error("DB ERROR:", err);
     res.status(500).json({ error: "Database insert failed" });
   }
 });
-
 /* ===============================
    SERVE FRONTEND
 ================================ */
-
 app.use(express.static(path.join(__dirname, 'dist')));
-
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
-
 /* ===============================
    START SERVER
 ================================ */
-
 const PORT = process.env.PORT || 8080;
-
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
