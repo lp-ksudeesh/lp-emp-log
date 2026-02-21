@@ -260,7 +260,7 @@ if (formData.Leave_Type !== "None") {
       {required && <span className="text-red-600 ml-1 font-black">*</span>}
     </label>
   );
-  
+
 const isWorkDateInsideLeave = useMemo(() => {
   
   if (
@@ -539,7 +539,7 @@ useEffect(() => {
   </select>
 </div>
 
-{/* ✅ Show Leave Date Range For All Leave Types Except None */}
+{/* Show Leave Date Range For All Leave Types Except None */}
 {formData.Leave_Type !== "None" && (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
     <div className="space-y-2">

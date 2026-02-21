@@ -42,9 +42,9 @@ const getISTDate = () => {
 async function connectDB() {
   try {
     pool = await sql.connect(sqlConfig);
-    console.log("✅ Connected to Azure SQL");
+    console.log("Connected to Azure SQL");
   } catch (err) {
-    console.error("❌ Database connection failed:", err);
+    console.error("Database connection failed:", err);
   }
 }
 connectDB();
@@ -258,5 +258,5 @@ app.get('*', (req, res) => {
 ================================ */
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
