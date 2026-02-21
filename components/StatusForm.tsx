@@ -48,10 +48,9 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
   // ✅ DATE VALIDATION
 if (name === "Work_Date") {
   const todayStr = new Date().toLocaleDateString('en-CA');
- 
 
-  if (value !== todayStr && formData.Leave_Type === "None") {
-    alert("You can only submit status for today unless you are on leave.");
+  if (value !== todayStr) {
+    alert("Work date must be today.");
     return;
   }
 }
@@ -86,23 +85,6 @@ if (name === "Leave_Type") {
   }
 
   return;
-
-  // ✅ LEAVE DATE VALIDATION
-if (formData.Leave_Type !== "None") {
-  if (!formData.Leave_Start_Date || !formData.Leave_End_Date) {
-    alert("Please select leave date range");
-    return;
-  }
-
-  const workDate = new Date(formData.Work_Date);
-  const start = new Date(formData.Leave_Start_Date);
-  const end = new Date(formData.Leave_End_Date);
-
-  if (workDate < start || workDate > end) {
-    alert("Work date must fall within selected leave range");
-    return;
-  }
-}
 }
 
   // ✅ EMPLOYEE ID AUTO-FILL
@@ -193,6 +175,40 @@ if (name === "Project_Names") {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const today = new Date();
+today.setHours(0,0,0,0);
+
+if (formData.Leave_Type !== "None") {
+
+  if (!formData.Leave_Start_Date || !formData.Leave_End_Date) {
+    alert("Please select leave date range.");
+    return;
+  }
+
+  const start = new Date(formData.Leave_Start_Date);
+  const end = new Date(formData.Leave_End_Date);
+
+  start.setHours(0,0,0,0);
+  end.setHours(0,0,0,0);
+
+  if (formData.Leave_Type === "Sick Leave") {
+
+    // Sick leave → past or today only
+    if (start > today || end > today) {
+      alert("Sick leave can only be applied for today or past dates.");
+      return;
+    }
+
+  } else {
+
+    // Casual / Paid / Unpaid → today or future only
+    if (start < today) {
+      alert("Planned leave cannot be applied for past dates.");
+      return;
+    }
+  }
+}
 
     try {
       const response = await fetch('/submit-status', {
