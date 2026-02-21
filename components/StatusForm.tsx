@@ -38,8 +38,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
     return str.trim() ? str.trim().split(/\s+/).length : 0;
   };
 
-   const todayStr = new Date().toLocaleDateString('en-CA');
-   const handleChange = async (
+  const handleChange = async (
   e: React.ChangeEvent<
     HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
   >
@@ -48,45 +47,11 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
 
   // ✅ DATE VALIDATION
 if (name === "Work_Date") {
+  const todayStr = new Date().toLocaleDateString('en-CA');
+ 
 
-  const today = new Date();
-  today.setHours(0,0,0,0);
-
-  const selectedDate = new Date(value);
-  selectedDate.setHours(0,0,0,0);
-
-  // No leave → only today
-  if (formData.Leave_Type === "None") {
-    if (selectedDate.getTime() !== today.getTime()) {
-      alert("You can only submit work for today.");
-      return;
-    }
-  }
-
-  // Sick leave → today or past only
-  if (formData.Leave_Type === "Sick Leave") {
-    if (selectedDate > today) {
-      alert("Sick leave cannot be applied for future dates.");
-      return;
-    }
-  }
-
-  // Other leave types → allow future
-}
-
-if (formData.Leave_Type === "Sick Leave") {
-
-  const today = new Date();
-  today.setHours(0,0,0,0);
-
-  const start = new Date(formData.Leave_Start_Date);
-  const end = new Date(formData.Leave_End_Date);
-
-  start.setHours(0,0,0,0);
-  end.setHours(0,0,0,0);
-
-  if (start > today || end > today) {
-    alert("Sick leave cannot be applied for future dates.");
+  if (value !== todayStr && formData.Leave_Type === "None") {
+    alert("You can only submit status for today unless you are on leave.");
     return;
   }
 }
@@ -284,7 +249,6 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
   }
 }
 
-
   return (
     <form
       onSubmit={handleSubmit}
@@ -426,24 +390,15 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
             <Label>Work Date</Label>
             <div className="relative">
               <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black opacity-40" />
-             
-
-<input
+              <input
   name="Work_Date"
   type="date"
   value={formData.Work_Date}
-  min={
-    formData.Leave_Type === "Sick Leave"
-      ? undefined
-      : todayStr
-  }
-  max={
-    formData.Leave_Type === "Sick Leave"
-      ? todayStr
-      : undefined
-  }
+  max={!isOnLeave ? today : undefined}
+  min={!isOnLeave ? today : undefined}
   onChange={handleChange}
   required
+  className="w-full pl-11 pr-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold"
 />
             </div>
           </div>
