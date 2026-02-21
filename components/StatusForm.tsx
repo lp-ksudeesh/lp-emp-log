@@ -211,8 +211,6 @@ if (formData.Leave_Type !== "None") {
     return;
   }
 
-  const today = new Date();
-  today.setHours(0,0,0,0);
 
   if (formData.Leave_Type === "Sick Leave") {
     if (start > today || end > today) {
@@ -262,12 +260,7 @@ if (formData.Leave_Type !== "None") {
       {required && <span className="text-red-600 ml-1 font-black">*</span>}
     </label>
   );
-  const today = new Date();
-today.setHours(0, 0, 0, 0);
-
-const workDate = new Date(formData.Work_Date);
-workDate.setHours(0, 0, 0, 0);
-
+  
 const isWorkDateInsideLeave = useMemo(() => {
   
   if (
