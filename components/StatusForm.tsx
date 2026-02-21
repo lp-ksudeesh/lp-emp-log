@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useMemo,useEffect } from 'react';
 import { 
   User, Briefcase, Calendar, Clock, ClipboardList, AlertCircle, 
   Send, ChevronRight, Hash, Layers, Users
@@ -8,6 +8,20 @@ import { EmployeeDailyStatus } from '../types';
 interface Props {
   onSubmit: (data: EmployeeDailyStatus) => void;
 }
+
+const getISTDateString = () => {
+  return new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Kolkata"
+  });
+};
+
+const getISTDateObject = () => {
+  const dateStr = getISTDateString();
+  const d = new Date(dateStr);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
 
 const StatusForm: React.FC<Props> = ({ onSubmit }) => {
   const [formData, setFormData] = useState<any>({
@@ -22,7 +36,7 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
     Leave_Start_Date: "",
     Leave_End_Date: "",
     Task_Type: 'Client Project',
-    Work_Date: new Date().toLocaleDateString('en-CA'),
+    Work_Date: getISTDateString(),
     Hours_Worked: '',
     Overtime_Hours: '0',
     Has_Blockers: 'No',
@@ -45,17 +59,17 @@ const StatusForm: React.FC<Props> = ({ onSubmit }) => {
 ) => {
   const { name, value } = e.target;
 
-  // ✅ DATE VALIDATION
+  // DATE VALIDATION
 if (name === "Work_Date") {
-  const todayStr = new Date().toLocaleDateString('en-CA');
+  const todayStr = getISTDateString();
 
   if (value !== todayStr) {
-    alert("Work date must be today.");
+    alert("Work date must be today (IST).");
     return;
   }
 }
 
-  // ✅ LEAVE LOGIC
+  // LEAVE LOGIC
 if (name === "Leave_Type") {
   if (value !== "None") {
     setFormData((prev: any) => ({
@@ -87,7 +101,7 @@ if (name === "Leave_Type") {
   return;
 }
 
-  // ✅ EMPLOYEE ID AUTO-FILL
+  // EMPLOYEE ID AUTO-FILL
   if (name === "Employee_Id") {
     setFormData((prev: any) => ({
       ...prev,
@@ -120,13 +134,13 @@ if (name === "Leave_Type") {
     return; // stop here
   }
 
-  // ✅ WORD COUNT
+  // WORD COUNT
   if (name === "Task_Summary") {
     const words = countWords(value);
     if (words > 300) return;
     setWordCount(words);
   }
-  // ✅ Auto calculate project count
+  // Auto calculate project count
 if (name === "Project_Names") {
   const projects = value
     .split(',')
@@ -143,7 +157,7 @@ if (name === "Project_Names") {
 }
  
 
-  // ✅ NORMAL FIELD UPDATE
+  // NORMAL FIELD UPDATE
   setFormData((prev: any) => {
     const newData = { ...prev, [name]: value };
 
@@ -176,8 +190,8 @@ if (name === "Project_Names") {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const today = new Date();
-today.setHours(0,0,0,0);
+   const today = getISTDateObject();
+
 
 if (formData.Leave_Type !== "None") {
 
@@ -192,23 +206,28 @@ if (formData.Leave_Type !== "None") {
   start.setHours(0,0,0,0);
   end.setHours(0,0,0,0);
 
-  if (formData.Leave_Type === "Sick Leave") {
+  if (end < start) {
+    alert("Leave end date cannot be before start date.");
+    return;
+  }
 
-    // Sick leave → past or today only
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  if (formData.Leave_Type === "Sick Leave") {
     if (start > today || end > today) {
       alert("Sick leave can only be applied for today or past dates.");
       return;
     }
-
   } else {
-
-    // Casual / Paid / Unpaid → today or future only
     if (start < today) {
       alert("Planned leave cannot be applied for past dates.");
       return;
     }
   }
 }
+
+
 
     try {
       const response = await fetch('/submit-status', {
@@ -249,21 +268,46 @@ today.setHours(0, 0, 0, 0);
 const workDate = new Date(formData.Work_Date);
 workDate.setHours(0, 0, 0, 0);
 
-let isOnLeave = false;
+const isWorkDateInsideLeave = useMemo(() => {
+  
+  if (
+    formData.Leave_Type === "None" ||
+    !formData.Leave_Start_Date ||
+    !formData.Leave_End_Date
+  ) {
+    return false;
+  }
 
-if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leave_End_Date) {
-
+  const work = new Date(formData.Work_Date);
   const start = new Date(formData.Leave_Start_Date);
   const end = new Date(formData.Leave_End_Date);
 
+  work.setHours(0, 0, 0, 0);
   start.setHours(0, 0, 0, 0);
   end.setHours(0, 0, 0, 0);
 
-  // Disable only if selected work date falls inside leave range
-  if (workDate >= start && workDate <= end) {
-    isOnLeave = true;
+  return work >= start && work <= end;
+}, [
+  formData.Work_Date,
+  formData.Leave_Type,
+  formData.Leave_Start_Date,
+  formData.Leave_End_Date
+]);
+
+useEffect(() => {
+  if (isWorkDateInsideLeave) {
+    setFormData(prev => ({
+      ...prev,
+      Hours_Worked: "0",
+      Overtime_Hours: "0"
+    }));
   }
-}
+}, [isWorkDateInsideLeave]);
+
+/*------------------------------------------------------------------------------*/
+
+
+/*------------------------------------------------------------------------------*/
 
   return (
     <form
@@ -410,12 +454,12 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
   name="Work_Date"
   type="date"
   value={formData.Work_Date}
-  max={!isOnLeave ? today : undefined}
-  min={!isOnLeave ? today : undefined}
+  min={getISTDateString()}
+  max={getISTDateString()}
   onChange={handleChange}
   required
   className="w-full pl-11 pr-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold"
-/>
+/>  
             </div>
           </div>
 
@@ -423,7 +467,7 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
             <Label>Hours Worked</Label>
             <input
               name="Hours_Worked"
-              disabled={isOnLeave}
+             disabled={isWorkDateInsideLeave}
               type="number"
               step="0.1"
               min="0"
@@ -439,7 +483,7 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
             <div className="relative">
               <input
                 name="Overtime_Hours"
-                disabled={isOnLeave}
+               disabled={isWorkDateInsideLeave}
                 type="number"
                 step="0.1"
                 min="0"
@@ -475,7 +519,7 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
             <Label>Daily Work Status</Label>
             <select 
               name="Work_Status" 
-              disabled={isOnLeave}
+           disabled={isWorkDateInsideLeave}
               required 
               className={`w-full px-4 py-3.5 bg-white border-2 rounded-2xl focus:ring-4 transition-all font-black text-center ${
                 formData.Work_Status === 'Delayed' ? 'border-red-600 text-red-600 focus:ring-red-100' : 'border-green-600 text-green-600 focus:ring-green-100'
@@ -538,7 +582,7 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
             <Label>Reason for Delay</Label>
             <textarea
               name="Work_Status_Reason"
-              disabled={isOnLeave}
+            disabled={isWorkDateInsideLeave}
               required
               placeholder="Why is the status delayed today?"
               className="w-full px-4 py-3.5 bg-white border-2 border-red-600 rounded-2xl h-24 focus:ring-4 focus:ring-red-100 transition-all text-red-600 font-bold resize-none placeholder:text-red-200"
@@ -556,7 +600,7 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
             <Label>Active Projects Count</Label>
             <input
   name="Active_Projects_Count"
-  disabled={isOnLeave}
+ disabled={isWorkDateInsideLeave}
   type="number"
   value={formData.Active_Projects_Count}
   readOnly
@@ -583,7 +627,7 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
           <Label>Project Names</Label>
           <input
             name="Project_Names"
-            disabled={isOnLeave}
+          disabled={isWorkDateInsideLeave}
             type="text"
             required
             placeholder="Apollo, Falcon, Internal Dashboard..."
@@ -599,7 +643,7 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
         <div className="grid grid-cols-1 gap-6">
           <div className="space-y-2">
             <Label>Task Type</Label>
-            <select name="Task_Type" disabled={isOnLeave} required className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold cursor-pointer" onChange={handleChange}>
+            <select name="Task_Type" disabled={isWorkDateInsideLeave} required className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold cursor-pointer" onChange={handleChange}>
               {['Client Project', 'Internal Task', 'Training', 'Innovation', 'Other'].map(v => (
                 <option key={v} value={v}>{v}</option>
               ))}
@@ -611,7 +655,7 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
               <Label>Specify Task Type</Label>
               <input
                 name="Other_Task_Type"
-                disabled={isOnLeave}
+               disabled={isWorkDateInsideLeave}
                 type="text"
                 required
                 placeholder="Enter custom task type"
@@ -630,7 +674,7 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
             </div>
             <textarea
               name="Task_Summary"
-              disabled={isOnLeave}
+             disabled={isWorkDateInsideLeave}
               placeholder="Describe your primary accomplishments for today..."
               className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl h-32 focus:ring-4 focus:ring-black/10 transition-all text-black font-bold resize-none placeholder:text-slate-300"
               onChange={handleChange}
@@ -644,7 +688,7 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
               <Label>Are there any blockers?</Label>
               <select 
                 name="Has_Blockers" 
-                disabled={isOnLeave}
+               disabled={isWorkDateInsideLeave}
                 required 
                 className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-black cursor-pointer"
                 onChange={handleChange}
@@ -664,7 +708,7 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
                 </div>
                 <textarea
                   name="Issue_Dependency_Description"
-                  disabled={isOnLeave}
+               disabled={isWorkDateInsideLeave}
                   required
                   placeholder="List any issues or dependencies that need attention (Mandatory when blockers exist)..."
                   className="w-full px-4 py-3.5 bg-white border-2 border-black rounded-2xl h-24 focus:ring-4 focus:ring-black/10 transition-all text-black font-bold resize-none placeholder:text-slate-300"
