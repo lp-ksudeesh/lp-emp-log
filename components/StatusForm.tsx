@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, Briefcase, Calendar, Clock, ClipboardList, AlertCircle, 
   Send, ChevronRight, Hash, Layers, Users
@@ -57,33 +57,10 @@ if (name === "Work_Date") {
 
   // ✅ LEAVE LOGIC
 if (name === "Leave_Type") {
-  if (value !== "None") {
-    setFormData((prev: any) => ({
-      ...prev,
-      Leave_Type: value,
-      Hours_Worked: "0",
-      Overtime_Hours: "0",
-      Short_Hours_Reason: "",
-      Task_Summary: "",
-      Work_Status: "On Track",
-      Work_Status_Reason: "",
-      Has_Blockers: "No",
-      Issue_Dependency_Description: "",
-      Active_Projects_Count: 0,
-      Project_Names: "",
-      Task_Type: "Client Project",
-      Other_Task_Type: ""
-    }));
-
-    setShowShortHoursReason(false);
-    setOvertimeSuggested(false);
-  } else {
-    setFormData((prev: any) => ({
-      ...prev,
-      Leave_Type: value
-    }));
-  }
-
+  setFormData((prev: any) => ({
+    ...prev,
+    Leave_Type: value
+  }));
   return;
 }
 
@@ -251,19 +228,35 @@ workDate.setHours(0, 0, 0, 0);
 
 let isOnLeave = false;
 
-if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leave_End_Date) {
-
+if (
+  formData.Leave_Type !== "None" &&
+  formData.Leave_Start_Date &&
+  formData.Leave_End_Date
+) {
   const start = new Date(formData.Leave_Start_Date);
   const end = new Date(formData.Leave_End_Date);
 
   start.setHours(0, 0, 0, 0);
   end.setHours(0, 0, 0, 0);
 
-  // Disable only if selected work date falls inside leave range
+  const workDate = new Date(formData.Work_Date);
+  workDate.setHours(0, 0, 0, 0);
+
+  // Disable only when work date falls inside leave range
   if (workDate >= start && workDate <= end) {
     isOnLeave = true;
   }
 }
+
+useEffect(() => {
+  if (isOnLeave) {
+    setFormData((prev: any) => ({
+      ...prev,
+      Hours_Worked: "0",
+      Overtime_Hours: "0"
+    }));
+  }
+}, [isOnLeave]);
 
   return (
     <form
@@ -413,6 +406,7 @@ if (formData.Leave_Type !== "None" && formData.Leave_Start_Date && formData.Leav
   max={!isOnLeave ? today : undefined}
   min={!isOnLeave ? today : undefined}
   onChange={handleChange}
+  readOnly
   required
   className="w-full pl-11 pr-4 py-3.5 bg-white border-2 border-black rounded-2xl focus:ring-4 focus:ring-black/10 transition-all text-black font-bold"
 />
