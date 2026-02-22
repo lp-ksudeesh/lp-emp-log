@@ -13,6 +13,8 @@ const sqlConfig = {
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
+  connectionTimeout: 30000,    
+  requestTimeout: 30000,       
   options: {
     encrypt: true,
     trustServerCertificate: false
@@ -20,10 +22,52 @@ const sqlConfig = {
   pool: {
     max: 10,
     min: 0,
-    idleTimeoutMillis: 30000
+    idleTimeoutMillis: 60000     // (optional increase)
   }
 };
 let pool;
+
+async function getPool() {
+  try {
+    // If pool already exists and is connected
+    if (pool && pool.connected) {
+      return pool;
+    }
+
+    // If pool exists but is not connected, close it
+    if (pool) {
+      console.log("Closing stale SQL connection...");
+      await pool.close();
+    }
+
+    // Create new pool
+    pool = await new sql.ConnectionPool(sqlConfig).connect();
+    console.log("Connected to Azure SQL");
+
+    return pool;
+
+  } catch (err) {
+    console.error("SQL connection failed:", err);
+    pool = null;
+    throw err;
+  }
+}
+
+/* Reset pool automatically on global SQL errors */
+sql.on('error', async (err) => {
+  console.error(" SQL connection lost. Resetting pool...", err);
+
+  if (pool) {
+    try {
+      await pool.close();
+    } catch (e) {
+      console.error("Error closing pool:", e);
+    }
+  }
+
+  pool = null;
+});
+
 /* ===============================
    IST UTILITY (FORCE INDIA TIME)
 ================================ */
@@ -36,24 +80,15 @@ const getISTDate = () => {
   istDate.setHours(0, 0, 0, 0);
   return istDate;
 };
-/* ===============================
-   CONNECT TO DATABASE
-================================ */
-async function connectDB() {
-  try {
-    pool = await sql.connect(sqlConfig);
-    console.log("Connected to Azure SQL");
-  } catch (err) {
-    console.error("Database connection failed:", err);
-  }
-}
-connectDB();
+
 /* ===============================
    EMPLOYEE LOOKUP BY ID
 ================================ */
 app.get('/employee-by-id/:id', async (req, res) => {
   try {
+    const pool = await getPool();
     const id = req.params.id;
+
     const result = await pool.request()
       .input('Employee_Id', sql.VarChar, id)
       .query(`
@@ -61,10 +96,13 @@ app.get('/employee-by-id/:id', async (req, res) => {
         FROM Employees
         WHERE Employee_Id = @Employee_Id
       `);
+
     if (result.recordset.length === 0) {
       return res.status(404).json({ message: "Employee not found" });
     }
+
     res.json(result.recordset[0]);
+
   } catch (err) {
     console.error("Lookup error:", err);
     res.status(500).json({ error: "Lookup failed" });
@@ -75,6 +113,7 @@ app.get('/employee-by-id/:id', async (req, res) => {
 ================================ */
 app.post('/submit-status', async (req, res) => {
   try {
+    const pool = await getPool();
     const r = req.body;
     const today = getISTDate();
     const submittedDate = new Date(r.Work_Date);
